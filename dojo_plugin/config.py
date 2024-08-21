@@ -95,10 +95,11 @@ for config_option in missing_errors:
         raise RuntimeError(f"Configuration Error: {config_option} must be set in the environment")
 
 def bootstrap():
-    set_config("ctf_name", "pwn.college")
-    set_config("ctf_description", "pwn.college")
+    set_config("ctf_name", "cisoCTF")
+    set_config("ctf_description", "Capture the flag time BAYBEE!")
     set_config("user_mode", "users")
-
+    set_config("ctf_logo", "/img/dojo/cisoctf2.png") 
+# ^This did not work. I had to manually change the logo sadge.
     set_config("challenge_visibility", "public")
     set_config("registration_visibility", "public")
     set_config("score_visibility", "public")

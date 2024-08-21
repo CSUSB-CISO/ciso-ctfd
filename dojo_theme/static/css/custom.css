@@ -11,11 +11,17 @@ body, table, .form-control:focus, .close {
 }
 
 .navbar-brand, .nav-link, h1, h2, #syllabus h3, #syllabus h4, .navbar-pulldown {
-    color: #b5e853 !important;
+    color: #005ba0 !important;
+}
+.navbar {
+    padding-top: 10px;  
+    padding-bottom: 10px;
+    min-height: 80px;  
 }
 
 .navbar > .container {
     justify-content: space-evenly;
+
 }
 
 a {
@@ -28,7 +34,7 @@ a:hover {
 }
 
 nav {
-    border-bottom: 1px dashed #b5e853;
+    border-bottom: 2px solid #005ba0;
 }
 
 h4 {
@@ -73,7 +79,7 @@ h4 {
     display: block;
     position: fixed;
     background-color: inherit;
-    font-size: 0; /* remove "inline magic space" */
+    font-size: 0;
     border-radius: 0.5rem;
     cursor: pointer;
     top: 0.25rem;
@@ -89,11 +95,12 @@ h4 {
 }
 
 .modal-content {
-    border: 1px dashed #b5e853;
+    border: 1px dashed #005ba0;
 }
 
 .navbar-brand, .nav-link, body, p, h1, h2, h3, h4, td {
     font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace !important;
+
 }
 
 .navbar-brand {
@@ -101,9 +108,6 @@ h4 {
     text-shadow: 0 1px 1px rgba(0,0,0,0.1),0 0 5px rgba(181,232,83,0.1),0 0 10px rgba(181,232,83,0.1);
 }
 
-.navbar-brand::before {
-    content: "./"
-}
 
 .nav-tabs {
     border-bottom: 1px solid #6c757d;
@@ -115,6 +119,14 @@ h4 {
 
 .nav-link:hover:not(.active) {
     border-color: #6c757d !important;
+}
+.custom-row {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.custom-text {
+    margin-left: 20px;
 }
 
 .challenge-button {
@@ -258,7 +270,7 @@ h4 {
 
 .challenge-solved {
     -webkit-text-stroke: 1px #222;
-    -webkit-text-fill-color: #b5e853;
+    -webkit-text-fill-color: #005ba0;
 }
 
 .challenge-unsolved {
@@ -329,7 +341,7 @@ table {
 
 th {
   text-align: left;
-  border-bottom: 1px dashed #b5e853;
+  border-bottom: 1px dashed #005ba0;
   padding: 5px 10px;
 }
 
@@ -340,12 +352,12 @@ td {
 hr {
   height: 0;
   border: 0;
-  border-bottom: 1px dashed #b5e853;
-  color: #b5e853;
+  border-bottom: 1px dashed #005ba0;
+  color: #005ba0;
 }
 
 .module-dojo a {
-    color: #b5e853;
+    color: #005ba0;
 }
 
 .module-due-date {
@@ -443,3 +455,4 @@ code{
 .hljs-strong {
     font-weight: bold;
 }
+
