@@ -27,7 +27,8 @@ UNIQUE_ID_REGEX = Regex(r"^[a-z0-9-~]{1,128}$")
 NAME_REGEX = Regex(r"^[\S ]{1,128}$")
 IMAGE_REGEX = Regex(r"^[\S]{1,256}$")
 FILE_PATH_REGEX = Regex(r"^[A-Za-z0-9_][A-Za-z0-9-_./]*$")
-FILE_URL_REGEX = Regex(r"^https://www.dropbox.com/[a-zA-Z0-9]*/[a-zA-Z0-9]*/[a-zA-Z0-9]*/[a-zA-Z0-9.-_]*?rlkey=[a-zA-Z0-9]*&dl=1")
+FILE_URL_REGEX = Regex(
+    r"^https://www.dropbox.com/[a-zA-Z0-9]*/[a-zA-Z0-9]*/[a-zA-Z0-9]*/[a-zA-Z0-9.-_]*?rlkey=[a-zA-Z0-9]*&dl=1")
 DATE = Use(datetime.datetime.fromisoformat)
 
 ID_NAME_DESCRIPTION = {
@@ -85,6 +86,9 @@ DOJO_SPEC = Schema({
             Optional("importable"): bool,
             # Optional("path"): Regex(r"^[^\s\.\/][^\s\.]{,255}$"),
 
+            Optional("flag"): str,
+
+
             Optional("import"): {
                 Optional("dojo"): UNIQUE_ID_REGEX,
                 Optional("module"): ID_REGEX,
@@ -119,6 +123,7 @@ DOJO_SPEC = Schema({
     ],
 })
 
+
 def setdefault_name(entry):
     if "import" in entry:
         return
@@ -128,9 +133,11 @@ def setdefault_name(entry):
         return
     entry["name"] = entry["id"].replace("-", " ").title()
 
+
 def setdefault_file(data, key, file_path):
     if file_path.exists():
         data.setdefault("description", file_path.read_text())
+
 
 def setdefault_subyaml(data, subyaml_path):
     if not subyaml_path.exists():
@@ -141,6 +148,7 @@ def setdefault_subyaml(data, subyaml_path):
     data.clear()
     data.update(subyaml_data)
     data.update(topyaml_data)
+
 
 def load_dojo_subyamls(data, dojo_dir):
     """
@@ -166,7 +174,8 @@ def load_dojo_subyamls(data, dojo_dir):
 
         module_dir = dojo_dir / module_data["id"]
         setdefault_subyaml(module_data, module_dir / "module.yml")
-        setdefault_file(module_data, "description", module_dir / "DESCRIPTION.md")
+        setdefault_file(module_data, "description",
+                        module_dir / "DESCRIPTION.md")
         setdefault_name(module_data)
 
         for challenge_data in module_data.get("challenges", []):
@@ -175,10 +184,12 @@ def load_dojo_subyamls(data, dojo_dir):
 
             challenge_dir = module_dir / challenge_data["id"]
             setdefault_subyaml(challenge_data, challenge_dir / "challenge.yml")
-            setdefault_file(challenge_data, "description", challenge_dir / "DESCRIPTION.md")
+            setdefault_file(challenge_data, "description",
+                            challenge_dir / "DESCRIPTION.md")
             setdefault_name(challenge_data)
 
     return data
+
 
 def dojo_initialize_files(data, dojo_dir):
     for dojo_file in data.get("files", []):
@@ -193,6 +204,7 @@ def dojo_initialize_files(data, dojo_dir):
             urllib.request.urlretrieve(dojo_file["url"], str(abs_path))
             assert abs_path.stat().st_size >= 50*1024*1024, f"{rel_path} is small enough to fit into git ({abs_path.stat().st_size} bytes) --- put it in the repository!"
 
+
 def dojo_from_dir(dojo_dir, *, dojo=None):
     dojo_yml_path = dojo_dir / "dojo.yml"
     assert dojo_yml_path.exists(), "Missing file: `dojo.yml`"
@@ -205,11 +217,12 @@ def dojo_from_dir(dojo_dir, *, dojo=None):
     dojo_initialize_files(data, dojo_dir)
     return dojo_from_spec(data, dojo_dir=dojo_dir, dojo=dojo)
 
+
 def dojo_from_spec(data, *, dojo_dir=None, dojo=None):
     try:
         dojo_data = DOJO_SPEC.validate(data)
     except SchemaError as e:
-        raise AssertionError(e)  # TODO: this probably shouldn't be re-raised as an AssertionError
+        raise AssertionError(e)
 
     def assert_importable(o):
         assert o.importable, f"Import disallowed for {o}."
@@ -228,7 +241,6 @@ def dojo_from_spec(data, *, dojo_dir=None, dojo=None):
         except NoResultFound:
             raise AssertionError(error_message)
 
-    # TODO: we probably don't need to restrict imports to official dojos
     import_dojo = (
         assert_import_one(Dojos.from_id(dojo_data["import"]["dojo"]).filter_by(official=True),
                    "Import dojo `{dojo_data['import']['dojo']}` does not exist")
@@ -247,11 +259,26 @@ def dojo_from_spec(data, *, dojo_dir=None, dojo=None):
             setattr(dojo, name, value)
 
     existing_challenges = {(challenge.module.id, challenge.id): challenge.challenge for challenge in dojo.challenges}
-    def challenge(module_id, challenge_id):
+
+    def challenge(module_id, challenge_id, challenge_data):
         if (module_id, challenge_id) in existing_challenges:
-            return existing_challenges[(module_id, challenge_id)]
+            existing_challenge = existing_challenges[(module_id, challenge_id)]
+            if "flag" in challenge_data:
+                if existing_challenge.flags:
+                    existing_challenge.flags[0].content = challenge_data["flag"]
+                    existing_challenge.flags[0].type = "static"
+                else:
+                    existing_challenge.flags = [Flags(type="static", content=challenge_data["flag"])]
+            return existing_challenge
+
+        flags = []
+        if "flag" in challenge_data:
+            flags.append(Flags(type="static", content=challenge_data["flag"]))
+        else:
+            flags.append(Flags(type="dojo"))
+
         result = (Challenges.query.filter_by(category=dojo.hex_dojo_id, name=f"{module_id}:{challenge_id}").first() or
-                  Challenges(type="dojo", category=dojo.hex_dojo_id, name=f"{module_id}:{challenge_id}", flags=[Flags(type="dojo")]))
+                  Challenges(type="dojo", category=dojo.hex_dojo_id, name=f"{module_id}:{challenge_id}", flags=flags))
         return result
 
     def visibility(cls, *args):
@@ -289,7 +316,7 @@ def dojo_from_spec(data, *, dojo_dir=None, dojo=None):
                     image=shadow("image", dojo_data, module_data, challenge_data, default=None),
                     allow_privileged=shadow("allow_privileged", dojo_data, module_data, challenge_data, default_dict=DojoChallenges.data_defaults),
                     importable=shadow("importable", dojo_data, module_data, challenge_data, default_dict=DojoChallenges.data_defaults),
-                    challenge=challenge(module_data.get("id"), challenge_data.get("id")) if "import" not in challenge_data else None,
+                    challenge=challenge(module_data.get("id"), challenge_data.get("id"), challenge_data) if "import" not in challenge_data else None,
                     visibility=visibility(DojoChallengeVisibilities, dojo_data, module_data, challenge_data),
                     default=(assert_import_one(DojoChallenges.from_id(*import_ids(["dojo", "module", "challenge"], dojo_data, module_data, challenge_data)),
                                         f"Import challenge `{'/'.join(import_ids(['dojo', 'module', 'challenge'], dojo_data, module_data, challenge_data))}` does not exist")
@@ -346,7 +373,6 @@ def dojo_from_spec(data, *, dojo_dir=None, dojo=None):
             dojo.pages = dojo_data["pages"]
 
     return dojo
-
 
 def generate_ssh_keypair():
     temp_dir = tempfile.TemporaryDirectory()
