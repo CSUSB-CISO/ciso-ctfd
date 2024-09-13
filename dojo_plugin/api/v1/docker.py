@@ -330,6 +330,8 @@ def start_challenge(user, dojo_challenge, practice, *, as_user=None):
         flag = "practice"
     elif as_user != user:
         flag = "support_flag"
+    elif dojo_challenge.get("flag"):
+        flag = dojo_challenge.get("flag")
     else:
         flag = serialize_user_flag(as_user.id, dojo_challenge.challenge_id)
     insert_flag(container, flag)

@@ -51,9 +51,12 @@ class DojoFlag(BaseFlag):
 
     @staticmethod
     def compare(chal_key_obj, provided):
+        if chal_key_obj.type == "static":
+            return chal_key_obj.content == provided
+
         current_account_id = get_current_user().account_id
         current_challenge_id = chal_key_obj.challenge_id
-        
+
         try:
             account_id, challenge_id = unserialize_user_flag(provided)
         except BadSignature:
@@ -64,17 +67,13 @@ class DojoFlag(BaseFlag):
 
         if challenge_id != current_challenge_id:
             raise FlagException("This flag is not for this challenge!")
-        
+
         try:
-            # Threading this b/c the sync needs to occurr after the database update for the flag success
             thread = threading.Thread(target=sync_challenge_to_canvas, args=(current_challenge_id, current_account_id, current_app._get_current_object()))
             thread.start()
         except Exception:
-            # we don't want to interrupt the flag process with a synchronization error
-            # the error should be fixed by the manual bulk submission
             pass 
         return True
-
 
 def shell_context_processor():
     import CTFd.models as ctfd_models

@@ -324,6 +324,7 @@ class DojoModules(db.Model):
     dojo_id = db.Column(db.Integer, db.ForeignKey("dojos.dojo_id", ondelete="CASCADE"), primary_key=True)
     module_index = db.Column(db.Integer, primary_key=True)
 
+
     id = db.Column(db.String(32), index=True)
     name = db.Column(db.String(128))
     description = db.Column(db.Text)
@@ -435,6 +436,9 @@ class DojoChallenges(db.Model):
     dojo_id = db.Column(db.Integer, db.ForeignKey("dojos.dojo_id", ondelete="CASCADE"), primary_key=True)
     module_index = db.Column(db.Integer, primary_key=True)
     challenge_index = db.Column(db.Integer, primary_key=True)
+
+    flag = db.Column(db.String(255))  # Add this line to include the flag field
+
 
     challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"), index=True)
     id = db.Column(db.String(32), index=True)
