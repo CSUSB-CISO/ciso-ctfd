@@ -3,7 +3,7 @@
 <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top w-100">
   <div class="container-fluid">
     <a href="{{ url_for('views.static_html', route='/') }}" class="navbar-brand">
-      <img class="img-responsive ctf_logo" src="{{ url_for('views.themes', path="img/dojo/ctfflagwhite.jpg") }}" height="50" width="50" alt="{{ Configs.ctf_name }}">
+      <img class="img-responsive ctf_logo" src="{{ url_for('views.themes', path="img/dojo/ctfflagwhite.jpeg") }}" height="50" width="50" alt="{{ Configs.ctf_name }}">
       {{ Configs.ctf_name }}
     </a>
 
@@ -24,7 +24,8 @@
         {% if is_admin() %}
           {{ navitem("Admin Panel", url_for("admin.view"), "fa-wrench", shrink=True) }}
         {% endif %}
-        {{ navitem("Profile", url_for("pwncollege_users.view_self"), "fa-user-circle", shrink=True) }}
+        <!-- {{ navitem("Profile", url_for("pwncollege_users.view_self"), "fa-user-circle", shrink=True) }} -->
+          <!-- ^^ PUT THIS BACK LATER ^^ -->
         {{ navitem("Settings", url_for("views.settings"), "fa-cogs", shrink=True) }}
         {{ navitem("Logout", url_for("auth.logout"), "fa-sign-out-alt", shrink=True) }}
         {% else %}
